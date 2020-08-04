@@ -16,8 +16,9 @@ use Illuminate\Support\Facades\Route;
 Route::post('register', 'API\RegisterController@register');
 
 Route::get('products', 'API\ProductController@index');
+Route::post('product', 'API\ProductController@create');
 
-Route::post('order/create', 'API\OrderController@create');
+Route::post('order', 'API\OrderController@create');
 
 Route::resource('cart', 'API\CartController');
 

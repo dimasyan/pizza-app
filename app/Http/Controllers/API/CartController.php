@@ -23,7 +23,13 @@ class CartController extends BaseController
             $cart->save();
         }
 
-        return $this->sendResponse(Cart::with('products')->find($cart->id), 'Cart created successfully');
+        $cart = Cart::with('products')->find($cart->id);
+
+        foreach ($cart->products as $product) {
+            $product->imageUrl = $product->image ? asset('storage/pics/' . $product->image) : null;
+        }
+
+        return $this->sendResponse($cart, 'Cart created successfully');
     }
 
     public function show($id)
@@ -32,6 +38,11 @@ class CartController extends BaseController
         if (is_null($cart)) {
             return $this->sendError('Cart not found.');
         }
+
+        foreach ($cart->products as $product) {
+            $product->imageUrl = $product->image ? asset('storage/pics/' . $product->image) : null;
+        }
+
         return $this->sendResponse($cart, 'Cart retrieved successfully.');
     }
 
@@ -45,13 +56,19 @@ class CartController extends BaseController
         foreach ($inputs['items'] as $input) {
             $products[$input['id']] = ['count' => $input['pivot']['count']];
         }
-        $cart->products()->sync($products, false);
+        $cart->products()->sync($products);
 
         if ($user && !$cart->user_id) {
             $cart->user_id = $user->id;
             $cart->save();
         }
 
-        return $this->sendResponse(Cart::with('products')->find($cart->id), 'Cart updated successfully');
+        $cart = Cart::with('products')->find($id);
+
+        foreach ($cart->products as $product) {
+            $product->imageUrl = $product->image ? asset('storage/pics/' . $product->image) : null;
+        }
+
+        return $this->sendResponse($cart, 'Cart updated successfully');
     }
 }

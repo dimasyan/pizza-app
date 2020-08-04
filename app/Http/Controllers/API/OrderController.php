@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 
+use App\Cart;
 use Illuminate\Http\Request;
 use App\Order;
 use Illuminate\Support\Facades\Auth;
@@ -32,21 +33,41 @@ class OrderController extends BaseController
             'address' => 'required',
             'city' => 'required',
             'country' => 'required',
-            'postcode' => 'required'
+            'postcode' => 'required',
+            'cart_id' => 'required'
         ]);
         if ($validator->fails()) {
             return $this->sendError('Validation Error.', $validator->errors());
         }
 
-        $order = Order::create($input);
-
-        if (!$user) {
-            $user = User::create([
-                'name' => $input['name'],
-                'email' => $input['email']
-            ]);
+        if ($user) {
+            $input['email'] = $user->email;
+            $input['name'] = $user->name;
+            $input['phone'] = $user->phone;
         }
-        $order->user_id = $user->id;
+
+        $cart = Cart::find($input['cart_id']);
+        $products = [];
+
+        $cost = 0;
+
+        foreach ($cart->products as $product) {
+            $products[$product->id] = [
+                'price' => $product->price,
+                'count' => $product->pivot->count,
+                'total' => $product->price * $product->pivot->count
+            ];
+            $cost += $product->price * $product->pivot->count;
+        }
+        $input['products_cost'] = $cost;
+        $input['delivery_price'] = Order::DELIVERY_PRICE;
+        $input['total_cost'] = $cost + Order::DELIVERY_PRICE;
+
+        $order = Order::create($input);
+        $order->products()->sync($products);
+        if ($user) {
+            $order->user_id = $user->id;
+        }
         $order->save();
 
         return $this->sendResponse($order, 'Order created successfully');

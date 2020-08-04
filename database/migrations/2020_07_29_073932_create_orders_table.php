@@ -15,14 +15,17 @@ class CreateOrdersTable extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->integer('status');
-            $table->float('delivery_price');
-            $table->float('products_cost');
-            $table->float('total_cost');
+            $table->integer('status')->default(1);
+            $table->float('delivery_price')->default(0);
+            $table->float('products_cost')->default(0);
+            $table->float('total_cost')->default(0);
             $table->string('address');
             $table->string('city');
             $table->string('country');
             $table->string('postcode');
+            $table->string('email');
+            $table->string('phone');
+            $table->string('name');
             $table->unsignedBigInteger('user_id')->nullable();
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
@@ -51,7 +54,7 @@ class CreateOrdersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('orders');
         Schema::dropIfExists('order_product');
+        Schema::dropIfExists('orders');
     }
 }
