@@ -29,7 +29,7 @@ class RegisterController extends BaseController
         $input = $request->all();
         $input['password'] = bcrypt($input['password']);
         $user = User::create($input);
-        if ($input['orderId']) {
+        if (array_key_exists('orderId', $input) && $input['orderId']) {
             $order = Order::find($input['orderId']);
             $order->user_id = $user->id;
             $order->save();
