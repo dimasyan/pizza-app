@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends BaseController
 {
@@ -15,9 +16,10 @@ class ProductController extends BaseController
     public function index()
     {
         $products = Product::all();
+        $url = 'https://s3.' . env('AWS_DEFAULT_REGION') . '.amazonaws.com/' . env('AWS_BUCKET') . '/images/';
 
         foreach ($products as $product) {
-            $product->imageUrl = $product->image ? asset('storage/pics/' . $product->image) : null;
+            $product->imageUrl = $product->image ? $url . $product->image : null;
         }
         return $this->sendResponse($products->toArray(), 'Products retrieved successfully.');
     }
@@ -35,7 +37,8 @@ class ProductController extends BaseController
             $image = $request->image;
             $ext = $image->getClientOriginalExtension();
             $filename = uniqid().'.'.$ext;
-            $image->storeAs('public/pics',$filename);
+            Storage::disk('s3')->put('images/' . $filename, file_get_contents($image));
+            //$image->storeAs('public/pics',$filename);
             $product->image = $filename;
         }
 

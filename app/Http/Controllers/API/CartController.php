@@ -11,6 +11,7 @@ class CartController extends BaseController
     public function store(Request $request)
     {
         $user = Auth::user() ?? Auth::guard("api")->user();
+        $url = 'https://s3.' . env('AWS_DEFAULT_REGION') . '.amazonaws.com/' . env('AWS_BUCKET') . '/images/';
         $input = $request->all();
 
         $cart = Cart::create();
@@ -26,7 +27,7 @@ class CartController extends BaseController
         $cart = Cart::with('products')->find($cart->id);
 
         foreach ($cart->products as $product) {
-            $product->imageUrl = $product->image ? asset('storage/pics/' . $product->image) : null;
+            $product->imageUrl = $product->image ? $url . $product->image : null;
         }
 
         return $this->sendResponse($cart, 'Cart created successfully');
@@ -35,12 +36,13 @@ class CartController extends BaseController
     public function show($id)
     {
         $cart = Cart::with('products')->find($id);
+        $url = 'https://s3.' . env('AWS_DEFAULT_REGION') . '.amazonaws.com/' . env('AWS_BUCKET') . '/images/';
         if (is_null($cart)) {
             return $this->sendError('Cart not found.');
         }
 
         foreach ($cart->products as $product) {
-            $product->imageUrl = $product->image ? asset('storage/pics/' . $product->image) : null;
+            $product->imageUrl = $product->image ? $url . $product->image : null;
         }
 
         return $this->sendResponse($cart, 'Cart retrieved successfully.');
@@ -49,6 +51,7 @@ class CartController extends BaseController
     public function update(Request $request, $id)
     {
         $user = Auth::user() ?? Auth::guard("api")->user();
+        $url = 'https://s3.' . env('AWS_DEFAULT_REGION') . '.amazonaws.com/' . env('AWS_BUCKET') . '/images/';
         $inputs = $request->all();
         $cart = Cart::find($id);
         $products = [];
@@ -66,7 +69,7 @@ class CartController extends BaseController
         $cart = Cart::with('products')->find($id);
 
         foreach ($cart->products as $product) {
-            $product->imageUrl = $product->image ? asset('storage/pics/' . $product->image) : null;
+            $product->imageUrl = $product->image ? $url . $product->image : null;
         }
 
         return $this->sendResponse($cart, 'Cart updated successfully');
